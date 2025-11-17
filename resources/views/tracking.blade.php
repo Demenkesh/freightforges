@@ -244,91 +244,38 @@
                 .catch(() => toastr.error("Unable to fetch parcel details."));
         }
 
-        // function displayParcelDetails(parcel) {
-        //     const parcelDetailsDiv = document.getElementById('parcelDetails');
-
-        //     const html = `
-    //         <div class="row">
-    //             <div class="col-lg-8">
-
-    //                 <div class="info-card">
-    //                     <h4>Shipment Progress</h4>
-
-    //                     <p class="waybill-box">Waybill: ${parcel.code}</p>
-
-    //                     <div class="tracking-timeline">
-    //                         <div class="timeline-item">
-    //                             <strong>${new Date().toLocaleDateString()}</strong><br>
-    //                             Status: ${parcel.status.toUpperCase()} <br>
-    //                             Trip Type: ${parcel.trip_type} <br>
-    //                             From: ${parcel.origin_country_id} ${parcel.origin_state_id ?? ''}<br>
-    //                             To: ${parcel.final_destination_country_id} ${parcel.final_destination_state_id ?? ''}
-    //                         </div>
-    //                     </div>
-    //                 </div>
-
-    //             </div>
-
-    //             <!-- RIGHT SIDE -->
-    //             <div class="col-lg-4">
-
-    //                 <div class="info-card">
-    //                     <h4>Delivery Information</h4>
-    //                     <table class="table">
-    //                         <tr><th>Est. Delivery:</th><td>${new Date(parcel.estimated_delivery_date).toLocaleDateString()}</td></tr>
-    //                         <tr><th>Origin:</th><td>${parcel.origin_country_id} ${parcel.origin_state_id ?? ''}</td></tr>
-    //                         <tr><th>Destination:</th><td>${parcel.final_destination_country_id} ${parcel.final_destination_state_id ?? ''}</td></tr>
-    //                     </table>
-    //                 </div>
-
-    //                 <div class="info-card">
-    //                     <h4>Sender Details</h4>
-    //                     <table class="table">
-    //                         <tr><th>Name:</th><td>${parcel.sender_name}</td></tr>
-    //                         <tr><th>Email:</th><td>${parcel.sender_email}</td></tr>
-    //                         <tr><th>Address:</th><td>${parcel.sender_address}</td></tr>
-    //                         <tr><th>Mobile:</th><td>${parcel.sender_mobile}</td></tr>
-    //                     </table>
-    //                 </div>
-
-    //                 <div class="info-card">
-    //                     <h4>Receiver Details</h4>
-    //                     <table class="table">
-    //                         <tr><th>Name:</th><td>${parcel.receiver_name}</td></tr>
-    //                         <tr><th>Email:</th><td>${parcel.receiver_email}</td></tr>
-    //                         <tr><th>Address:</th><td>${parcel.receiver_address}</td></tr>
-    //                         <tr><th>Mobile:</th><td>${parcel.receiver_mobile}</td></tr>
-    //                     </table>
-    //                 </div>
-
-    //                 <div class="info-card">
-    //                     <h4>Shipment Details</h4>
-    //                     <table class="table">
-    //                         <tr><th>BOL:</th><td>${parcel.bill_of_lading}</td></tr>
-    //                         <tr><th>Type:</th><td>${parcel.shipment_type}</td></tr>
-    //                         <tr><th>Content:</th><td>${parcel.shipment_content}</td></tr>
-    //                         <tr><th>Quantity:</th><td>${parcel.quantity}</td></tr>
-    //                         <tr><th>Weight:</th><td>${parcel.weight} kg</td></tr>
-    //                         <tr><th>Transport:</th><td>${parcel.transport_mode_id}</td></tr>
-    //                         <tr><th>Total Charges:</th><td>${parcel.total_charges}</td></tr>
-    //                     </table>
-    //                 </div>
-
-    //             </div>
-    //         </div>
-    //     `;
-
-        //     parcelDetailsDiv.innerHTML = html;
-        // }
         function displayParcelDetails(parcel) {
             const parcelDetailsDiv = document.getElementById('parcelDetails');
 
-            // Determine progress bar state
+            // ---------------------------------------------
+            // UPDATED STATUS → PROGRESS BAR LOGIC
+            // ---------------------------------------------
             const status = parcel.status.toLowerCase();
-            const inTransitActive = (status === 'in_transit' || status === 'arrived' || status === 'delivered');
-            const arrivedActive = (status === 'arrived' || status === 'delivered');
-            const deliveredActive = (status === 'delivered');
 
+            const stage = {
+                pending: 1,
+                in_progress: 2,
+                shipped: 3,
+                in_transit: 4,
+                delivered: 5,
+
+                // Do not push progress bar forward
+                on_hold: 2,
+                delayed: 2,
+                cancelled: 1,
+            };
+
+            const currentStage = stage[status] ?? 1;
+
+            const step1 = currentStage >= 1 ? "active" : "";
+            const step2 = currentStage >= 2 ? "active" : "";
+            const step3 = currentStage >= 3 ? "active" : "";
+            const step4 = currentStage >= 4 ? "active" : "";
+            const step5 = currentStage >= 5 ? "active" : "";
+
+            // ---------------------------------------------
+            // HTML OUTPUT
+            // ---------------------------------------------
             const html = `
         <div class="row">
 
@@ -342,21 +289,35 @@
                     <div class="progress-wrapper">
                         <div class="progress-steps">
 
-                            <div class="step ${inTransitActive ? 'active' : ''}">
+                            <div class="step ${step1}">
+                                <div class="step-circle"></div>
+                                <div class="step-label">Pending</div>
+                            </div>
+
+                            <div class="step-line ${step2}"></div>
+
+                            <div class="step ${step2}">
+                                <div class="step-circle"></div>
+                                <div class="step-label">In Progress</div>
+                            </div>
+
+                            <div class="step-line ${step3}"></div>
+
+                            <div class="step ${step3}">
+                                <div class="step-circle"></div>
+                                <div class="step-label">Shipped</div>
+                            </div>
+
+                            <div class="step-line ${step4}"></div>
+
+                            <div class="step ${step4}">
                                 <div class="step-circle"></div>
                                 <div class="step-label">In Transit</div>
                             </div>
 
-                            <div class="step-line ${arrivedActive ? 'active' : ''}"></div>
+                            <div class="step-line ${step5}"></div>
 
-                            <div class="step ${arrivedActive ? 'active' : ''}">
-                                <div class="step-circle"></div>
-                                <div class="step-label">Arrived</div>
-                            </div>
-
-                            <div class="step-line ${deliveredActive ? 'active' : ''}"></div>
-
-                            <div class="step ${deliveredActive ? 'active' : ''}">
+                            <div class="step ${step5}">
                                 <div class="step-circle"></div>
                                 <div class="step-label">Delivered</div>
                             </div>
@@ -404,8 +365,8 @@
                     <div class="info-title">Delivery Information</div>
                     <table class="table clean-table">
                         <tr><th>Est. Delivery:</th><td>${new Date(parcel.estimated_delivery_date).toLocaleDateString()}</td></tr>
-                        <tr><th>Origin:</th><td>${parcel.origin_country_id} ${parcel.origin_state_id??''}</td></tr>
-                        <tr><th>Destination:</th><td>${parcel.final_destination_country_id} ${parcel.final_destination_state_id??''}</td></tr>
+                        <tr><th>Origin:</th><td>${parcel.origin_country_id} ${parcel.origin_state_id ?? ''}</td></tr>
+                        <tr><th>Destination:</th><td>${parcel.final_destination_country_id} ${parcel.final_destination_state_id ?? ''}</td></tr>
                     </table>
                 </div>
 
