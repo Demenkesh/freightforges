@@ -4,7 +4,7 @@
         <ul class="nav navbar-nav flex-row">
             <li class="nav-item me-auto"><a class="navbar-brand"
                     href="{{ url('admin/set_track') }}"><span class="brand-logo">
-                        <img src="{{ url('/') }}/wp-content/uploads/2023/04/logos-white.png" alt="Logo" height="28">
+                        <img src="{{ url('/') }}/assets/images/logo/ts_logo.png" alt="Logo" height="28">
                         {{-- <svg viewbox="0 0 139 95" version="1.1" xmlns="http://www.w3.org/2000/svg"
                             xmlns:xlink="http://www.w3.org/1999/xlink" height="24">
                             <defs>

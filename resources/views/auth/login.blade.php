@@ -100,7 +100,7 @@
                                             </g>
                                         </g>
                                     </svg> --}}
-                                    <img src="{{ url('/') }}/wp-content/uploads/2023/04/logos-white.png" alt="Logo" height="28">
+                                    <img src="{{ url('/') }}/assets/images/logo/ts_logo.png" alt="Logo" height="28">
                                     <h2 class="brand-text text-primary ms-1"> {{ config('app.name', 'Laravel') }}</h2>
                                 </a>
 
