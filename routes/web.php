@@ -63,42 +63,42 @@ Route::get('migrate', function () {
 });
 
 // Auth::routes();
-Route::get('migrates', function () {
-    try {
-        Artisan::call('migrate');
-        sleep(2);
-        Artisan::call('db:seed', [
-            '--class' => 'UserSeeder',
-        ]);
-        sleep(3);
-        Artisan::call('g:c');
-        Artisan::call('g:s Nigeria');
-        sleep(1);
-        return "Migrations have been executed successfully.";
-    } catch (\Throwable $th) {
-        return $th->getMessage();
-    }
-});
+// Route::get('migrates', function () {
+//     try {
+//         Artisan::call('migrate');
+//         sleep(2);
+//         Artisan::call('db:seed', [
+//             '--class' => 'UserSeeder',
+//         ]);
+//         sleep(3);
+//         Artisan::call('g:c');
+//         Artisan::call('g:s Nigeria');
+//         sleep(1);
+//         return "Migrations have been executed successfully.";
+//     } catch (\Throwable $th) {
+//         return $th->getMessage();
+//     }
+// });
 
-Route::get('seedadmin', function () {
-    try {
-        Artisan::call('db:seed', [
-            '--class' => 'UserSeeder',
-        ]);
+// Route::get('seedadmin', function () {
+//     try {
+//         Artisan::call('db:seed', [
+//             '--class' => 'UserSeeder',
+//         ]);
 
-        return "Admin seeded successfully!";
-    } catch (\Throwable $th) {
-        return $th->getMessage();
-    }
-});
-// for migrating db
-Route::get('migratecountry', function () {
-    try {
-        Artisan::call('g:c');
-        Artisan::call('g:s Nigeria');
+//         return "Admin seeded successfully!";
+//     } catch (\Throwable $th) {
+//         return $th->getMessage();
+//     }
+// });
+// // for migrating db
+// Route::get('migratecountry', function () {
+//     try {
+//         Artisan::call('g:c');
+//         Artisan::call('g:s Nigeria');
 
-        return "Migrations have been executed successfully.";
-    } catch (\Throwable $th) {
-        return $th->getMessage();
-    }
-});
+//         return "Migrations have been executed successfully.";
+//     } catch (\Throwable $th) {
+//         return $th->getMessage();
+//     }
+// });
