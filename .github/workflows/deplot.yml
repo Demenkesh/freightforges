@@ -1,0 +1,59 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          ini-values: post_max_size=256M, upload_max_filesize=256M, memory_limit=512M
+          tools: composer
+
+      - name: Validate PHP version
+        run: php -v
+
+      - name: Validate Composer installation
+        run: composer --version
+
+      - name: Copy .env file if not exists
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+      - name: Clear Composer Cache
+        run: composer clear-cache
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-scripts --no-progress --no-suggest
+
+      - name: Regenerate Composer Autoload Files
+        run: composer dump-autoload
+
+      - name: Generate App Key
+        run: php artisan key:generate --ansi
+
+      - name: Clear Laravel Cache
+        run: |
+          php artisan config:clear --ansi
+          php artisan cache:clear --ansi
+          php artisan route:clear --ansi
+          php artisan view:clear --ansi
+          php artisan optimize:clear --ansi
+
+      - name: Deploy all files to Server
+        uses: easingthemes/ssh-deploy@v2.1.7
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          SOURCE: "."  # Sync the entire project directory
+          TARGET: "/home/sites/6b/5/5e14830702/freightforges"
