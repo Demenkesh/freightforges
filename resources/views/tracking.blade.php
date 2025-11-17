@@ -1,6 +1,6 @@
 @extends('layouts.frontend')
 @section('title')
-    Track Your Shipment
+    {{ env('APP_NAME') }} - Track Your Shipment
 @endsection
 @section('content')
     <style>

@@ -1,6 +1,6 @@
 @extends('layouts.frontend')
 @section('title')
-    Welcome admin
+    {{ env('APP_NAME') }} - About us
 @endsection
 @section('content')
     <!-- ST Breadcumb Area -->

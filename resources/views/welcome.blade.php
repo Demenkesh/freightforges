@@ -1,6 +1,6 @@
 @extends('layouts.frontend')
 @section('title')
-    Welcome admin
+    {{ env('APP_NAME') }} - Home Page
 @endsection
 @section('content')
     <!-- ST Slider Area -->
@@ -621,6 +621,4 @@
             </div>
         </div>
     </div>
-
-
 @endsection
