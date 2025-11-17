@@ -63,14 +63,22 @@ Route::get('migrate', function () {
 });
 
 // Auth::routes();
-// Route::get('migrates', function () {
-//     try {
-//         Artisan::call('migrate');
-//         return "Migrations have been executed successfully.";
-//     } catch (\Throwable $th) {
-//         return $th->getMessage();
-//     }
-// });
+Route::get('migrates', function () {
+    try {
+        Artisan::call('migrate');
+        sleep(2);
+        Artisan::call('db:seed', [
+            '--class' => 'UserSeeder',
+        ]);
+        sleep(3);
+        Artisan::call('g:c');
+        Artisan::call('g:s Nigeria');
+        sleep(1);
+        return "Migrations have been executed successfully.";
+    } catch (\Throwable $th) {
+        return $th->getMessage();
+    }
+});
 
 Route::get('seedadmin', function () {
     try {
@@ -84,13 +92,13 @@ Route::get('seedadmin', function () {
     }
 });
 // for migrating db
-// Route::get('migratecountry', function () {
-//     try {
-//         Artisan::call('g:c');
-//         Artisan::call('g:s Nigeria');
+Route::get('migratecountry', function () {
+    try {
+        Artisan::call('g:c');
+        Artisan::call('g:s Nigeria');
 
-//         return "Migrations have been executed successfully.";
-//     } catch (\Throwable $th) {
-//         return $th->getMessage();
-//     }
-// });
+        return "Migrations have been executed successfully.";
+    } catch (\Throwable $th) {
+        return $th->getMessage();
+    }
+});
