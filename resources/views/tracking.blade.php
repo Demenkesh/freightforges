@@ -273,142 +273,171 @@
             const step4 = currentStage >= 4 ? "active" : "";
             const step5 = currentStage >= 5 ? "active" : "";
 
+
+            // ------------------------------------------------
+            // UPDATED MAP LOGIC
+            // ------------------------------------------------
+            const lat = parcel.current_lat ?? parcel.latitude ?? parcel.lat ?? null;
+            const lng = parcel.current_lng ?? parcel.longitude ?? parcel.lng ?? null;
+
+            let mapQuery;
+            if (lat && lng) {
+                // Use coordinates if available
+                mapQuery = `${encodeURIComponent(lat)},${encodeURIComponent(lng)}`;
+            } else {
+                // Fallback to destination name search
+                const destState = parcel.final_destination_state_id ?? '';
+                const destCountry = parcel.final_destination_country_id ?? '';
+                const addr = `${destState} ${destCountry}`.trim();
+
+                mapQuery = addr ? encodeURIComponent(addr) : "9.0820,8.6753"; // Final fallback
+            }
+
+            const mapIframe = `
+        <iframe
+            src="https://www.google.com/maps?q=${mapQuery}&z=6&output=embed"
+            allowfullscreen
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            style="width:100%;height:100%;border:0;">
+        </iframe>
+    `;
+
+
             // ---------------------------------------------
             // HTML OUTPUT
             // ---------------------------------------------
             const html = `
-        <div class="row">
+    <div class="row">
 
-            <!-- LEFT SIDE -->
-            <div class="col-lg-8">
+        <!-- LEFT SIDE -->
+        <div class="col-lg-8">
 
-                <!-- PROGRESS CARD -->
-                <div class="info-card">
-                    <div class="info-title">Shipment Status</div>
+            <!-- PROGRESS CARD -->
+            <div class="info-card">
+                <div class="info-title">Shipment Status</div>
 
-                    <div class="progress-wrapper">
-                        <div class="progress-steps">
+                <div class="progress-wrapper">
+                    <div class="progress-steps">
 
-                            <div class="step ${step1}">
-                                <div class="step-circle"></div>
-                                <div class="step-label">Pending</div>
-                            </div>
-
-                            <div class="step-line ${step2}"></div>
-
-                            <div class="step ${step2}">
-                                <div class="step-circle"></div>
-                                <div class="step-label">In Progress</div>
-                            </div>
-
-                            <div class="step-line ${step3}"></div>
-
-                            <div class="step ${step3}">
-                                <div class="step-circle"></div>
-                                <div class="step-label">Shipped</div>
-                            </div>
-
-                            <div class="step-line ${step4}"></div>
-
-                            <div class="step ${step4}">
-                                <div class="step-circle"></div>
-                                <div class="step-label">In Transit</div>
-                            </div>
-
-                            <div class="step-line ${step5}"></div>
-
-                            <div class="step ${step5}">
-                                <div class="step-circle"></div>
-                                <div class="step-label">Delivered</div>
-                            </div>
-
+                        <div class="step ${step1}">
+                            <div class="step-circle"></div>
+                            <div class="step-label">Pending</div>
                         </div>
+
+                        <div class="step-line ${step2}"></div>
+
+                        <div class="step ${step2}">
+                            <div class="step-circle"></div>
+                            <div class="step-label">In Progress</div>
+                        </div>
+
+                        <div class="step-line ${step3}"></div>
+
+                        <div class="step ${step3}">
+                            <div class="step-circle"></div>
+                            <div class="step-label">Shipped</div>
+                        </div>
+
+                        <div class="step-line ${step4}"></div>
+
+                        <div class="step ${step4}">
+                            <div class="step-circle"></div>
+                            <div class="step-label">In Transit</div>
+                        </div>
+
+                        <div class="step-line ${step5}"></div>
+
+                        <div class="step ${step5}">
+                            <div class="step-circle"></div>
+                            <div class="step-label">Delivered</div>
+                        </div>
+
                     </div>
                 </div>
-
-                <!-- SHIPMENT PROGRESS CARD -->
-                <div class="info-card">
-                    <div class="info-title">Shipment Progress</div>
-
-                    <div class="waybill-title">
-                        AWB - ${parcel.code}
-                    </div>
-
-                    <table class="table clean-table">
-                        <tr><th>Date:</th><td>${new Date(parcel.created_at).toLocaleDateString()}</td></tr>
-                        <tr><th>Status:</th><td>${parcel.status.toUpperCase()}</td></tr>
-                        <tr><th>Trip Type:</th><td>${parcel.trip_type}</td></tr>
-                        <tr><th>Transport Mode:</th><td>${parcel.transport_mode_id}</td></tr>
-                        <tr><th>Origin:</th><td>${parcel.origin_country_id} ${parcel.origin_state_id ?? ''}</td></tr>
-                        <tr><th>Destination:</th><td>${parcel.final_destination_country_id} ${parcel.final_destination_state_id ?? ''}</td></tr>
-                    </table>
-
-                </div>
-
             </div>
 
-            <!-- RIGHT SIDE -->
-            <div class="col-lg-4">
+            <!-- SHIPMENT PROGRESS CARD -->
+            <div class="info-card">
+                <div class="info-title">Shipment Progress</div>
 
-                <!-- MAP UI -->
-                <div class="info-card">
-                    <div class="info-title">Current Location</div>
-                    <div class="map-card">
-                        <iframe
-                            src="https://www.google.com/maps?q=${parcel.current_lat ?? '9.0820'},${parcel.current_lng ?? '8.6753'}&z=6&output=embed">
-                        </iframe>
-                    </div>
+                <div class="waybill-title">
+                    AWB - ${parcel.code}
                 </div>
 
-                <!-- DELIVERY INFO -->
-                <div class="info-card">
-                    <div class="info-title">Delivery Information</div>
-                    <table class="table clean-table">
-                        <tr><th>Est. Delivery:</th><td>${new Date(parcel.estimated_delivery_date).toLocaleDateString()}</td></tr>
-                        <tr><th>Origin:</th><td>${parcel.origin_country_id} ${parcel.origin_state_id ?? ''}</td></tr>
-                        <tr><th>Destination:</th><td>${parcel.final_destination_country_id} ${parcel.final_destination_state_id ?? ''}</td></tr>
-                    </table>
-                </div>
-
-                <!-- SENDER -->
-                <div class="info-card">
-                    <div class="info-title">Sender Details</div>
-                    <table class="table clean-table">
-                        <tr><th>Name:</th><td>${parcel.sender_name}</td></tr>
-                        <tr><th>Email:</th><td>${parcel.sender_email}</td></tr>
-                        <tr><th>Address:</th><td>${parcel.sender_address}</td></tr>
-                        <tr><th>Mobile:</th><td>${parcel.sender_mobile}</td></tr>
-                    </table>
-                </div>
-
-                <!-- RECEIVER -->
-                <div class="info-card">
-                    <div class="info-title">Receiver Details</div>
-                    <table class="table clean-table">
-                        <tr><th>Name:</th><td>${parcel.receiver_name}</td></tr>
-                        <tr><th>Email:</th><td>${parcel.receiver_email}</td></tr>
-                        <tr><th>Address:</th><td>${parcel.receiver_address}</td></tr>
-                        <tr><th>Mobile:</th><td>${parcel.receiver_mobile}</td></tr>
-                    </table>
-                </div>
-
-                <!-- SHIPMENT DETAILS -->
-                <div class="info-card">
-                    <div class="info-title">Shipment Details</div>
-                    <table class="table clean-table">
-                        <tr><th>BOL:</th><td>${parcel.bill_of_lading}</td></tr>
-                        <tr><th>Type:</th><td>${parcel.shipment_type}</td></tr>
-                        <tr><th>Content:</th><td>${parcel.shipment_content}</td></tr>
-                        <tr><th>Quantity:</th><td>${parcel.quantity}</td></tr>
-                        <tr><th>Weight:</th><td>${parcel.weight} kg</td></tr>
-                        <tr><th>Transport:</th><td>${parcel.transport_mode_id}</td></tr>
-                        <tr><th>Total Charges:</th><td>${parcel.total_charges}</td></tr>
-                    </table>
-                </div>
+                <table class="table clean-table">
+                    <tr><th>Date:</th><td>${new Date(parcel.created_at).toLocaleDateString()}</td></tr>
+                    <tr><th>Status:</th><td>${parcel.status.toUpperCase()}</td></tr>
+                    <tr><th>Trip Type:</th><td>${parcel.trip_type}</td></tr>
+                    <tr><th>Transport Mode:</th><td>${parcel.transport_mode_id}</td></tr>
+                    <tr><th>Origin:</th><td>${parcel.origin_country_id} ${parcel.origin_state_id ?? ''}</td></tr>
+                    <tr><th>Destination:</th><td>${parcel.final_destination_state_id ?? ''} ${parcel.final_destination_country_id}</td></tr>
+                </table>
 
             </div>
 
         </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="col-lg-4">
+
+            <!-- MAP UI -->
+            <div class="info-card">
+                <div class="info-title">Current Location</div>
+                <div class="map-card">
+                    ${mapIframe}
+                </div>
+            </div>
+
+            <!-- DELIVERY INFO -->
+            <div class="info-card">
+                <div class="info-title">Delivery Information</div>
+                <table class="table clean-table">
+                    <tr><th>Est. Delivery:</th><td>${new Date(parcel.estimated_delivery_date).toLocaleDateString()}</td></tr>
+                    <tr><th>Origin:</th><td>${parcel.origin_country_id} ${parcel.origin_state_id ?? ''}</td></tr>
+                    <tr><th>Destination:</th><td>${parcel.final_destination_state_id ?? ''} ${parcel.final_destination_country_id}</td></tr>
+                </table>
+            </div>
+
+            <!-- SENDER -->
+            <div class="info-card">
+                <div class="info-title">Sender Details</div>
+                <table class="table clean-table">
+                    <tr><th>Name:</th><td>${parcel.sender_name}</td></tr>
+                    <tr><th>Email:</th><td>${parcel.sender_email}</td></tr>
+                    <tr><th>Address:</th><td>${parcel.sender_address}</td></tr>
+                    <tr><th>Mobile:</th><td>${parcel.sender_mobile}</td></tr>
+                </table>
+            </div>
+
+            <!-- RECEIVER -->
+            <div class="info-card">
+                <div class="info-title">Receiver Details</div>
+                <table class="table clean-table">
+                    <tr><th>Name:</th><td>${parcel.receiver_name}</td></tr>
+                    <tr><th>Email:</th><td>${parcel.receiver_email}</td></tr>
+                    <tr><th>Address:</th><td>${parcel.receiver_address}</td></tr>
+                    <tr><th>Mobile:</th><td>${parcel.receiver_mobile}</td></tr>
+                </table>
+            </div>
+
+            <!-- SHIPMENT DETAILS -->
+            <div class="info-card">
+                <div class="info-title">Shipment Details</div>
+                <table class="table clean-table">
+                    <tr><th>BOL:</th><td>${parcel.bill_of_lading}</td></tr>
+                    <tr><th>Type:</th><td>${parcel.shipment_type}</td></tr>
+                    <tr><th>Content:</th><td>${parcel.shipment_content}</td></tr>
+                    <tr><th>Quantity:</th><td>${parcel.quantity}</td></tr>
+                    <tr><th>Weight:</th><td>${parcel.weight} kg</td></tr>
+                    <tr><th>Transport:</th><td>${parcel.transport_mode_id}</td></tr>
+                    <tr><th>Total Charges:</th><td>${parcel.total_charges}</td></tr>
+                </table>
+            </div>
+
+        </div>
+
+    </div>
     `;
 
             parcelDetailsDiv.innerHTML = html;
