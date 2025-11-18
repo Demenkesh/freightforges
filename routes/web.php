@@ -38,25 +38,28 @@ Route::controller(AuthController::class)->group(function () {
                 // Route::get('dashboard', 'index');
 
                 Route::get('set_track', 'getsettrack');
+                Route::get('set_track/{id}', 'showHistory')->name('history.view');
                 Route::post('set_track', 'store');
                 Route::put('update_track/{id}', 'updates')->name('tracking.update');
                 Route::post('/tracking-code/update/{id}', 'update')->name('tracking-code.update');
+                Route::post('/tracking-code/updates/{id}', 'updatess')->name('tracking-code.updates');
 
                 Route::get('/tracking/states/{country}', 'getStatesByCountry')->name('tracking.states');
-                
+
 
             });
         });
     });
 });
 
+
 // Route::get('/tracking/states/{country}', [TrackingController::class, 'getStatesByCountry'])->name('tracking.states');
 
 Route::get('migrate', function () {
     try {
         Artisan::call('migrate');
-        Artisan::call('g:c');
-        Artisan::call('g:s all');
+        // Artisan::call('g:c');
+        // Artisan::call('g:s all');
 
         return "Migrations have been executed successfully.";
     } catch (\Throwable $th) {
@@ -64,43 +67,3 @@ Route::get('migrate', function () {
     }
 });
 
-// Auth::routes();
-// Route::get('migrates', function () {
-//     try {
-//         Artisan::call('migrate');
-//         sleep(2);
-//         Artisan::call('db:seed', [
-//             '--class' => 'UserSeeder',
-//         ]);
-//         sleep(3);
-//         Artisan::call('g:c');
-//         Artisan::call('g:s Nigeria');
-//         sleep(1);
-//         return "Migrations have been executed successfully.";
-//     } catch (\Throwable $th) {
-//         return $th->getMessage();
-//     }
-// });
-
-// Route::get('seedadmin', function () {
-//     try {
-//         Artisan::call('db:seed', [
-//             '--class' => 'UserSeeder',
-//         ]);
-
-//         return "Admin seeded successfully!";
-//     } catch (\Throwable $th) {
-//         return $th->getMessage();
-//     }
-// });
-// // for migrating db
-// Route::get('migratecountry', function () {
-//     try {
-//         Artisan::call('g:c');
-//         Artisan::call('g:s Nigeria');
-
-//         return "Migrations have been executed successfully.";
-//     } catch (\Throwable $th) {
-//         return $th->getMessage();
-//     }
-// });

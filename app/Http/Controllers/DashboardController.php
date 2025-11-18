@@ -9,6 +9,7 @@ use App\Models\TrackingCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\Histories;
 use Illuminate\Support\Facades\Mail;
 use WisdomDiala\Countrypkg\Models\State;
 use GuzzleHttp\Exception\RequestException;
@@ -28,6 +29,14 @@ class DashboardController extends Controller
         return view('admin.track.index', compact('countries', 'code')); // Return a custom login view
     }
 
+    public function showHistory($id)
+    {
+        $parcel = TrackingCode::with(['latestHistory', 'histories'])->findOrFail($id);
+
+        return view('admin.track.history', compact('parcel'));
+    }
+
+
     // Fetch states based on country selection (for dynamic state population in the form)
     public function getStatesByCountry($countryId)
     {
@@ -41,6 +50,7 @@ class DashboardController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request->all());
         $request->validate([
             'trip_type' => 'required|in:one-way,non-one-way',
             'origin_country_id' => 'required|exists:countries,id',
@@ -57,7 +67,7 @@ class DashboardController extends Controller
             'receiver_email' => 'required|email',
             'receiver_address' => 'required|string',
             'receiver_mobile' => 'required|string',
-            // 'bill_of_lading' => 'required|string',
+            'condition' => 'required|string',
             'shipment_type' => 'required|string',
             'shipment_content' => 'required|string',
             'quantity' => 'required|integer|min:1',
@@ -100,8 +110,8 @@ class DashboardController extends Controller
             'origin_country_id' => $data['origin_country_name'],
             'origin_state_id' => $data['origin_state_name'],
 
-            'second_destination_state_id' => $request->trip_type === 'non-one-way' ? $data['second_origin_state_name'] : null,
-            'second_destination_country_id' => $request->trip_type === 'non-one-way' ? $data['second_origin_country_name'] : null,
+            // 'second_destination_state_id' => $request->trip_type === 'non-one-way' ? $data['second_origin_state_name'] : null,
+            // 'second_destination_country_id' => $request->trip_type === 'non-one-way' ? $data['second_origin_country_name'] : null,
 
             'final_destination_state_id' =>  $data['final_destination_state_name'],
             'final_destination_country_id' =>  $data['final_destination_country_name'],
@@ -125,6 +135,27 @@ class DashboardController extends Controller
             'total_charges' => $request->total_charges,
             'estimated_delivery_date' => $request->estimated_delivery_date,
         ]);
+
+        // Save to histories table ONLY IF non-one-way
+        if ($request->trip_type === 'non-one-way') {
+
+            $exists = DB::table('histories')
+                ->where('tracking_code_id', $trackingCode->id)
+                ->where('country', $data['second_origin_country_name'])
+                ->where('state', $data['second_origin_state_name'])
+                ->exists();
+
+            if (! $exists) {
+                DB::table('histories')->insert([
+                    'tracking_code_id' => $trackingCode->id,
+                    'country' => $data['second_origin_country_name'],
+                    'state' => $data['second_origin_state_name'],
+                    'condition' => $request->condition, // You might want to replace 'some condition' with actual data
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
 
         return redirect()->back()->with('status', 'Tracking code created successfully. Code: ' . $trackingCode->code)
             ->with('data', $data); // Optionally pass the names back to the view
@@ -204,6 +235,7 @@ class DashboardController extends Controller
             'receiver_email' => $request->receiver_email,
             'receiver_address' => $request->receiver_address,
             'receiver_mobile' => $request->receiver_mobile,
+
             'shipment_type' => 'parcel',
             'shipment_content' => $request->shipment_content,
             'quantity' => $request->quantity,
@@ -211,6 +243,28 @@ class DashboardController extends Controller
             'total_charges' => $request->total_charges,
             'estimated_delivery_date' => $request->estimated_delivery_date,
         ]);
+
+        // Save to histories table ONLY IF non-one-way
+        if ($request->trip_type === 'non-one-way') {
+
+            $exists = DB::table('histories')
+                ->where('tracking_code_id', $tracking->id)
+                ->where('country', $data['second_origin_country_name'])
+                ->where('state', $data['second_origin_state_name'])
+                ->exists();
+
+            if (!$exists || $exists) {
+                DB::table('histories')->insert([
+                    'tracking_code_id' => $tracking->id,
+                    'country' => $data['second_origin_country_name'],
+                    'state' => $data['second_origin_state_name'],
+                    'condition' => 'in_transit',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
 
         return redirect()->back()->with('status', 'Tracking updated successfully')->with('data', $data);
     }
@@ -220,12 +274,23 @@ class DashboardController extends Controller
     public function update(Request $request, $id)
     {
         $trackingCode = TrackingCode::findOrFail($id);
-
         // Update the status
         $trackingCode->status = $request->status;
         $trackingCode->save();
 
         return response()->json(['success' => true, 'status' => $trackingCode->status]);
+    }
+    public function updatess(Request $request, $id)
+    {
+        // $trackingCode = TrackingCode::findOrFail($id);
+        $history = Histories::where('tracking_code_id', $id)->latest()->first();
+
+
+        // Update the status
+        $history->condition = $request->condition;
+        $history->save();
+
+        return response()->json(['success' => true, 'status' => $history->condition]);
     }
 
 
@@ -234,7 +299,7 @@ class DashboardController extends Controller
         $trackingNumber = $request->query('tracking_number');
 
         // Retrieve the parcel by tracking code
-        $parcel = TrackingCode::where('code', $trackingNumber)->first();
+        $parcel = TrackingCode::with('histories')->where('code', $trackingNumber)->first();
 
         if ($parcel) {
             return response()->json(['success' => true, 'parcel' => $parcel], 200);

@@ -38,4 +38,12 @@ class TrackingCode extends Model
         'weight',                  // Weight of Product
         'total_charges',           // Total Charges
     ];
+    public function histories()
+    {
+        return $this->hasMany(Histories::class, 'tracking_code_id');
+    }
+    public function latestHistory()
+    {
+        return $this->hasOne(Histories::class, 'tracking_code_id')->latestOfMany();
+    }
 }

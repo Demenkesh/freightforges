@@ -58,6 +58,7 @@
                                             <th scope="col">Status</th>
                                             <th scope="col">action</th>
                                             <th scope="col">edit</th>
+                                            <th scope="col">View History</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -113,8 +114,17 @@
                                                         data-bs-target="#staticBackdrops{{ $item['id'] }}">
                                                         Edit
                                                     </button>
-
                                                 </td>
+
+                                                <td class="flex-column flex-md-row align-items-md-center">
+                                                    <a href="{{ route('history.view', $item->id) }}"
+                                                        class="btn btn-primary">
+                                                        View History
+                                                    </a>
+                                                </td>
+
+
+
                                             </tr>
                                             <!-- Modal -->
                                             <div class="modal fade" id="staticBackdrop{{ $item['id'] }}"
@@ -149,14 +159,23 @@
                                                                             <li class="list-group-item"><strong>Origin State
                                                                                     ID:</strong>
                                                                                 {{ $item['origin_state_id'] }}</li>
-                                                                            <li class="list-group-item"><strong>Second
-                                                                                    Destination Country ID:</strong>
-                                                                                {{ $item['second_destination_country_id'] }}
+                                                                            @php
+                                                                                $latestHistory = $item->histories
+                                                                                    ->sortByDesc('created_at')
+                                                                                    ->first();
+                                                                            @endphp
+
+                                                                            <li class="list-group-item">
+                                                                                <strong>Second Destination Country:</strong>
+                                                                                {{ $latestHistory->country ?? 'N/A' }}
                                                                             </li>
-                                                                            <li class="list-group-item"><strong>Second
-                                                                                    Destination State ID:</strong>
-                                                                                {{ $item['second_destination_state_id'] }}
+
+                                                                            <li class="list-group-item">
+                                                                                <strong>Second Destination State:</strong>
+                                                                                {{ $latestHistory->state ?? 'N/A' }}
                                                                             </li>
+
+
                                                                             <li class="list-group-item"><strong>Final
                                                                                     Destination Country ID:</strong>
                                                                                 {{ $item['final_destination_country_id'] }}
@@ -174,7 +193,7 @@
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer">
-
+                                                            <h5 class="text-primary">Status</h5>
                                                             <select class="form-select"
                                                                 id="statusSelect{{ $item['id'] }}"
                                                                 onchange="updateOrderStatus('{{ $item['id'] }}')">
@@ -204,19 +223,46 @@
                                                                     Delivered</option>
                                                             </select>
 
-                                                            {{-- <button type="button"
-                                                                class="btn btn-{{ $item['status'] === 'pending' ? 'danger' : 'success' }}"
-                                                                id="updateButton{{ $item['id'] }}"
-                                                                onclick="updateTrackingCode('{{ $item['id'] }}')">
-                                                                {{ $item['status'] === 'pending' ? 'Mark as Complete' : 'Completed' }}
-                                                            </button> --}}
+                                                            <h5 class="text-primary">Condition</h5>
+                                                            <select class="form-select"
+                                                                id="statusSelects{{ $item['id'] }}"
+                                                                onchange="updateOrderStatuses('{{ $item['id'] }}')">
+
+                                                                <option value="cleared"
+                                                                    {{ $latestHistory->condition === 'cleared' ? 'selected' : '' }}>
+                                                                    Cleared
+                                                                </option>
+                                                                <option value="in_transit"
+                                                                    {{ $latestHistory->condition === 'in_transit' ? 'selected' : '' }}>
+                                                                    In Transit
+                                                                </option>
+                                                                <option value="delivered"
+                                                                    {{ $latestHistory->condition === 'delivered' ? 'selected' : '' }}>
+                                                                    Delivered
+                                                                </option>
+
+                                                            </select>
+
+
+
+
+
                                                             <button type="button" class="btn btn-secondary"
                                                                 data-bs-dismiss="modal">Close</button>
                                                         </div>
+
+
+
+
+
+
+
+
+
+
                                                     </div>
                                                 </div>
                                             </div>
-
 
                                             {{-- edit --}}
 
@@ -269,16 +315,17 @@
                                                                                     <select name="trip_type"
                                                                                         id="edit_trip_type_{{ $item['id'] }}"
                                                                                         class="form-control" required>
-                                                                                        <option value="one-way"
+                                                                                        {{-- <option value="one-way"
                                                                                             {{ $item['trip_type'] == 'one-way' ? 'selected' : '' }}>
                                                                                             One-way
-                                                                                        </option>
+                                                                                        </option> --}}
                                                                                         <option value="non-one-way"
                                                                                             {{ $item['trip_type'] == 'non-one-way' ? 'selected' : '' }}>
                                                                                             Non One-way
                                                                                         </option>
                                                                                     </select>
                                                                                 </div>
+
 
                                                                                 <!-- Origin Country & State -->
                                                                                 <div class="mb-1">
@@ -309,13 +356,14 @@
                                                                                 <!-- Second Origin (Non-One-way) -->
                                                                                 <div class="mb-1"
                                                                                     style="{{ $item['trip_type'] == 'non-one-way' ? '' : 'display:none;' }}">
-                                                                                    <label>Second Origin Country</label>
+                                                                                    <label>Second Origin Country(Current
+                                                                                        Location)</label>
                                                                                     <select name="second_origin_country_id"
                                                                                         class="form-control">
                                                                                         @foreach ($countries as $country)
                                                                                             <option
                                                                                                 value="{{ $country->id }}"
-                                                                                                {{ $item['second_origin_country_id'] == $country->name ? 'selected' : '' }}>
+                                                                                                {{ $latestHistory->country == $country->name ? 'selected' : '' }}>
                                                                                                 {{ $country->name }}
                                                                                             </option>
                                                                                         @endforeach
@@ -325,9 +373,12 @@
                                                                                 <div class="mb-1"
                                                                                     style="{{ $item['trip_type'] == 'non-one-way' ? '' : 'display:none;' }}"
                                                                                     id="second_origin_state_div_{{ $item['id'] }}">
-                                                                                    <label>Second Origin State</label>
+                                                                                    <label>Second Origin State(Current
+                                                                                        Location)</label>
                                                                                     <select name="second_origin_state_id"
-                                                                                        class="form-control">
+                                                                                        class="form-control"
+                                                                                        data-current="{{ $latestHistory->state }}"
+                                                                                        required>
                                                                                         <option value="">Select State
                                                                                         </option>
                                                                                     </select>
@@ -549,7 +600,8 @@
                                     <div class="mb-1">
                                         <label for="trip_type">Trip Type</label>
                                         <select name="trip_type" id="trip_type" class="form-control" required>
-                                            <option value="one-way">One-way</option>
+                                            <option value="">Select Trip Type</option>
+                                            {{-- <option value="one-way">One-way</option> --}}
                                             <option value="non-one-way">Non One-way</option>
                                         </select>
                                     </div>
@@ -573,9 +625,10 @@
                                         </select>
                                     </div>
 
+
                                     <!-- Second Origin Country and State for Non-One-Way -->
                                     <div class="mb-1" id="second_origin_field" style="display:none;">
-                                        <label for="second_origin_country">Second Origin Country (Non-One-way only)</label>
+                                        <label for="second_origin_country">Second Origin Country (Current Location)</label>
                                         <select name="second_origin_country_id" id="second_origin_country"
                                             class="form-control">
                                             <option value="">Select Country</option>
@@ -585,10 +638,20 @@
                                         </select>
                                     </div>
                                     <div class="mb-1" id="second_origin_state_field" style="display:none;">
-                                        <label for="second_origin_state_id">Second Origin State (Non-One-way only)</label>
+                                        <label for="second_origin_state_id">Second Origin State (Current Location)</label>
                                         <select name="second_origin_state_id" id="second_origin_state_id"
                                             class="form-control">
                                             <option value="">Select State</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-1" id="Condition_field" style="display:none;">
+                                        <label for="condition">Condition (Current Location)</label>
+                                        <select name="condition" id="condition" class="form-control" required>
+                                            <option value="">Select Condition</option>
+                                            <option value="cleared">Cleared</option>
+                                            <option value="in_transit">In Transit</option>
+                                            <option value="delivered">Delivered</option>
                                         </select>
                                     </div>
 
@@ -610,7 +673,6 @@
                                             <option value="">Select State</option>
                                         </select>
                                     </div>
-
 
                                     <h2>Sender's Details</h2>
                                     <div class="mb-1">
@@ -760,6 +822,7 @@
         document.getElementById('trip_type').addEventListener('change', function() {
             const isNonOneWay = this.value === 'non-one-way';
             document.getElementById('second_origin_field').style.display = isNonOneWay ? 'block' : 'none';
+            document.getElementById('Condition_field').style.display = isNonOneWay ? 'block' : 'none';
             document.getElementById('second_origin_state_field').style.display = isNonOneWay ? 'block' : 'none';
             document.getElementById('final_destination_field').style.display = 'block';
             document.getElementById('final_destination_state_field').style.display = 'block';
@@ -832,6 +895,43 @@
                     toastr.error('An error occurred while updating the status.');
                 });
         }
+
+        function updateOrderStatuses(id) {
+            // Get the selected status from the dropdown
+            const select = document.getElementById(`statusSelects${id}`);
+            const selectedStatus = select.value;
+
+            // Send AJAX request to update the order status
+            fetch(`{{ route('tracking-code.updates', '') }}/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}' // Include CSRF token
+                    },
+                    body: JSON.stringify({
+                        condition: selectedStatus
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success notification
+                        toastr.success('Order status updated successfully!');
+
+                        // Optionally, update the select element to show the new status as selected
+                        select.value = data.status;
+                        // Refresh the page or reload a class only
+                        window.location.reload(); // This will reload the entire page
+                    } else {
+                        // Handle errors if needed
+                        toastr.error('Failed to update order status.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastr.error('An error occurred while updating the status.');
+                });
+        }
     </script>
 @endpush
 
@@ -858,9 +958,10 @@
                             const option = document.createElement('option');
                             option.value = state.id;
                             option.textContent = state.name;
-                            // console.log(state.id);
+                            // console.log(selectedStateId);
 
-                            if (selectedStateId && state.name === selectedStateId) option.selected = true;
+                            if (selectedStateId && state.name === selectedStateId) option.selected =
+                                true;
                             stateSelect.appendChild(option);
                         });
                     })
