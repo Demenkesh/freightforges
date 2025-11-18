@@ -39,9 +39,11 @@ Route::controller(AuthController::class)->group(function () {
 
                 Route::get('set_track', 'getsettrack');
                 Route::post('set_track', 'store');
+                Route::put('update_track/{id}', 'updates')->name('tracking.update');
                 Route::post('/tracking-code/update/{id}', 'update')->name('tracking-code.update');
 
                 Route::get('/tracking/states/{country}', 'getStatesByCountry')->name('tracking.states');
+                
 
             });
         });

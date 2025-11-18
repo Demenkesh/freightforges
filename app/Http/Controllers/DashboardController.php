@@ -35,6 +35,8 @@ class DashboardController extends Controller
         return response()->json($states);
     }
 
+
+
     // Handle the form submission to create a tracking code
 
     public function store(Request $request)
@@ -128,6 +130,91 @@ class DashboardController extends Controller
             ->with('data', $data); // Optionally pass the names back to the view
     }
 
+    public function updates(Request $request, $id)
+    {
+        $request->validate([
+            'trip_type' => 'required|in:one-way,non-one-way',
+            'origin_country_id' => 'required|exists:countries,id',
+            'origin_state_id' => 'required|exists:states,id',
+            'final_destination_country_id' => 'required|exists:countries,id',
+            'final_destination_state_id' => 'required_if:trip_type,one-way|exists:states,id',
+            'second_origin_country_id' => 'nullable|exists:countries,id',
+            'second_origin_state_id' => 'nullable|exists:states,id',
+            'mode' => 'required',
+            'sender_name' => 'required|string',
+            'sender_email' => 'required|email',
+            'sender_address' => 'required|string',
+            'sender_mobile' => 'required|string',
+            'receiver_name' => 'required|string',
+            'receiver_email' => 'required|email',
+            'receiver_address' => 'required|string',
+            'receiver_mobile' => 'required|string',
+            'shipment_type' => 'nullable|string',
+            'shipment_content' => 'required|string',
+            'quantity' => 'required|integer|min:1',
+            'weight' => 'required|numeric|min:0',
+            'total_charges' => 'required|numeric|min:0',
+            'estimated_delivery_date' => 'required|date',
+        ]);
+
+        // Retrieve names using raw queries
+        $originCountry = DB::table('countries')->where('id', $request->origin_country_id)->value('name');
+        $originState = DB::table('states')->where('id', $request->origin_state_id)->value('name');
+        $finalDestinationCountry = DB::table('countries')->where('id', $request->final_destination_country_id)->value('name');
+        $finalDestinationState = DB::table('states')->where('id', $request->final_destination_state_id)->value('name');
+
+        $secondOriginCountry = $request->second_origin_country_id
+            ? DB::table('countries')->where('id', $request->second_origin_country_id)->value('name')
+            : null;
+        $secondOriginState = $request->second_origin_state_id
+            ? DB::table('states')->where('id', $request->second_origin_state_id)->value('name')
+            : null;
+
+        $data = [
+            'origin_country_name' => $originCountry,
+            'origin_state_name' => $originState,
+            'second_origin_country_name' => $secondOriginCountry,
+            'second_origin_state_name' => $secondOriginState,
+            'final_destination_country_name' => $finalDestinationCountry,
+            'final_destination_state_name' => $finalDestinationState,
+        ];
+
+        // Find the tracking code record
+        $tracking = TrackingCode::findOrFail($id);
+
+        // Update all fields like in store
+        $tracking->update([
+            'trip_type' => $request->trip_type,
+            'origin_country_id' => $data['origin_country_name'],
+            'origin_state_id' => $data['origin_state_name'],
+
+            'second_destination_state_id' => $request->trip_type === 'non-one-way' ? $data['second_origin_state_name'] : null,
+            'second_destination_country_id' => $request->trip_type === 'non-one-way' ? $data['second_origin_country_name'] : null,
+
+            'final_destination_state_id' =>  $data['final_destination_state_name'],
+            'final_destination_country_id' =>  $data['final_destination_country_name'],
+
+            'transport_mode_id' => $request->mode,
+
+            'sender_name' => $request->sender_name,
+            'sender_email' => $request->sender_email,
+            'sender_address' => $request->sender_address,
+            'sender_mobile' => $request->sender_mobile,
+            'receiver_name' => $request->receiver_name,
+            'receiver_email' => $request->receiver_email,
+            'receiver_address' => $request->receiver_address,
+            'receiver_mobile' => $request->receiver_mobile,
+            'shipment_type' => 'parcel',
+            'shipment_content' => $request->shipment_content,
+            'quantity' => $request->quantity,
+            'weight' => $request->weight,
+            'total_charges' => $request->total_charges,
+            'estimated_delivery_date' => $request->estimated_delivery_date,
+        ]);
+
+        return redirect()->back()->with('status', 'Tracking updated successfully')->with('data', $data);
+    }
+
 
 
     public function update(Request $request, $id)
@@ -179,7 +266,7 @@ class DashboardController extends Controller
 
             return back()->with('status', 'Your request has been sent!');
         } catch (\Throwable $th) {
-            dd($th);
+            // dd($th);
             return back()->with('error', 'error!');
         }
     }
