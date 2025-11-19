@@ -299,7 +299,7 @@ class DashboardController extends Controller
         $trackingNumber = $request->query('tracking_number');
 
         // Retrieve the parcel by tracking code
-        $parcel = TrackingCode::with('histories')->where('code', $trackingNumber)->first();
+        $parcel = TrackingCode::with('histories', 'latestHistory')->where('code', $trackingNumber)->first();
 
         if ($parcel) {
             return response()->json(['success' => true, 'parcel' => $parcel], 200);
