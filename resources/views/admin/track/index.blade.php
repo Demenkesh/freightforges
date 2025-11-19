@@ -228,6 +228,11 @@
                                                                 id="statusSelects{{ $item['id'] }}"
                                                                 onchange="updateOrderStatuses('{{ $item['id'] }}')">
 
+                                                                <option value="onhold"
+                                                                    {{ $latestHistory->condition === 'onhold' ? 'selected' : '' }}>
+                                                                    Onhold
+                                                                </option>
+
                                                                 <option value="cleared"
                                                                     {{ $latestHistory->condition === 'cleared' ? 'selected' : '' }}>
                                                                     Cleared
@@ -649,6 +654,7 @@
                                         <label for="condition">Condition (Current Location)</label>
                                         <select name="condition" id="condition" class="form-control" required>
                                             <option value="">Select Condition</option>
+                                            <option value="onhold">Onhold</option>
                                             <option value="cleared">Cleared</option>
                                             <option value="in_transit">In Transit</option>
                                             <option value="delivered">Delivered</option>
