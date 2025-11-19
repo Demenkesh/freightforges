@@ -279,6 +279,15 @@ class DashboardController extends Controller
         return redirect()->back()->with('status', 'Tracking updated successfully')->with('data', $data);
     }
 
+    public function delete($id)
+    {
+        $trackingCode = TrackingCode::findOrFail($id);
+
+        Histories::where('tracking_code_id', $trackingCode->id)->delete();
+        $trackingCode->delete();
+
+        return redirect()->back()->with('status', 'Tracking deleted successfully.');
+    }
 
 
     public function update(Request $request, $id)
@@ -295,12 +304,11 @@ class DashboardController extends Controller
         // $trackingCode = TrackingCode::findOrFail($id);
         $history = Histories::where('tracking_code_id', $id)->latest()->first();
 
-
         // Update the status
         $history->condition = $request->condition;
         $history->save();
 
-        return response()->json(['success' => true, 'status' => $history->condition]);
+        return redirect()->back()->with('status', 'History updated successfully');
     }
 
 

@@ -46,6 +46,8 @@ Route::controller(AuthController::class)->group(function () {
 
                 Route::get('/tracking/states/{country}', 'getStatesByCountry')->name('tracking.states');
 
+                Route::get('/tracking-code/delete/{id}', 'delete')->name('tracking-code.delete');
+
 
             });
         });

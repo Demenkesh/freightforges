@@ -60,6 +60,7 @@
                                             <th scope="col">action</th>
                                             <th scope="col">edit</th>
                                             <th scope="col">View History</th>
+                                            <th scope="col">Delete</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -138,7 +139,13 @@
                                                     </a>
                                                 </td>
 
+                                                <td class="flex-column flex-md-row align-items-md-center">
+                                                    <a href="{{ route('tracking-code.delete', $item->id) }}"
+                                                        onclick="return confirm('Are you sure?')" class="btn btn-danger">
+                                                        Delete
+                                                    </a>
 
+                                                </td>
 
                                             </tr>
                                             <!-- Modal -->
