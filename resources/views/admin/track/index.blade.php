@@ -56,6 +56,7 @@
                                             <th scope="col">Code</th>
                                             <th scope="col">Trip_type</th>
                                             <th scope="col">Status</th>
+                                            <th scope="col">Condition</th>
                                             <th scope="col">action</th>
                                             <th scope="col">edit</th>
                                             <th scope="col">View History</th>
@@ -93,6 +94,8 @@
                                                 }
                                             @endphp
 
+
+
                                             <tr>
                                                 <th scope="row">{{ $item['id'] }}</th>
                                                 <td>{{ $item['code'] }}</td>
@@ -100,6 +103,18 @@
                                                 {{-- <td class="refreshe">{{ $item['status'] }}</td> --}}
                                                 <td class="{{ $statusClass }}  refreshe">
                                                     {{ ucfirst(str_replace('_', ' ', $item['status'])) }}</td>
+
+                                                <td>
+                                                    <span
+                                                        class="badge
+                                    @if (strtolower($item->latestHistory->condition) == 'cleared') bg-success
+                                    @elseif(str_contains(strtolower($item->latestHistory->condition), 'in_transit')) bg-primary
+                                    @elseif(strtolower($item->latestHistory->condition) == 'delivered') bg-info
+                                    @else bg-secondary @endif">
+                                                        {{ $item->latestHistory->condition ?? 'Unknown' }}
+                                                    </span>
+                                                </td>
+
                                                 <td class=" flex-column flex-md-row align-items-md-center">
 
                                                     <button type="button" class="btn btn-primary" data-bs-toggle="modal"
@@ -129,7 +144,8 @@
                                             <!-- Modal -->
                                             <div class="modal fade" id="staticBackdrop{{ $item['id'] }}"
                                                 data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-                                                aria-labelledby="staticBackdrop{{ $item['id'] }}Label" aria-hidden="true">
+                                                aria-labelledby="staticBackdrop{{ $item['id'] }}Label"
+                                                aria-hidden="true">
                                                 <div class="modal-dialog modal-dialog-centered modal-lg">
                                                     <div class="modal-content border-0 shadow-lg">
                                                         <div class="modal-header bg-primary text-white">

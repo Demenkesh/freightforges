@@ -25,7 +25,7 @@ class DashboardController extends Controller
     public function getsettrack()
     {
         $countries = Country::all();
-        $code = TrackingCode::paginate(10);
+        $code = TrackingCode::with(['latestHistory'])->paginate(10);
         return view('admin.track.index', compact('countries', 'code')); // Return a custom login view
     }
 
@@ -247,23 +247,33 @@ class DashboardController extends Controller
         // Save to histories table ONLY IF non-one-way
         if ($request->trip_type === 'non-one-way') {
 
-            $exists = DB::table('histories')
+            // 1. Get the last history record for this tracking
+            $lastHistory = DB::table('histories')
                 ->where('tracking_code_id', $tracking->id)
-                ->where('country', $data['second_origin_country_name'])
-                ->where('state', $data['second_origin_state_name'])
-                ->exists();
+                ->latest('id')
+                ->first();
 
-            if (!$exists || $exists) {
-                DB::table('histories')->insert([
-                    'tracking_code_id' => $tracking->id,
-                    'country' => $data['second_origin_country_name'],
-                    'state' => $data['second_origin_state_name'],
-                    'condition' => 'in_transit',
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+            // 2. If a previous record exists → update it to "cleared"
+            if ($lastHistory) {
+                DB::table('histories')
+                    ->where('id', $lastHistory->id)
+                    ->update([
+                        'condition' => 'cleared',
+                        'updated_at' => now(),
+                    ]);
             }
+
+            // 3. Now insert the new shipping history
+            DB::table('histories')->insert([
+                'tracking_code_id' => $tracking->id,
+                'country' => $data['second_origin_country_name'],
+                'state' => $data['second_origin_state_name'],
+                'condition' => 'in_transit',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         }
+
 
 
         return redirect()->back()->with('status', 'Tracking updated successfully')->with('data', $data);

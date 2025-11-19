@@ -54,24 +54,25 @@
                             <tbody>
 
                                 {{-- Latest History --}}
-                                @if ($parcel->latest_history)
+                                {{-- @if ($parcel->latestHistory)
                                     <tr class="table-primary">
-                                        <td>{{ $parcel->latest_history->country ?? '-' }}
-                                            {{ $parcel->latest_history->state ?? '' }}</td>
+                                        <td>{{ $parcel->latestHistory->country ?? '-' }}
+                                            {{ $parcel->latestHistory->state ?? '' }}</td>
                                         <td>
                                             <span
                                                 class="badge
-                                    @if (strtolower($parcel->latest_history->condition) == 'cleared') bg-success
-                                    @elseif(str_contains(strtolower($parcel->latest_history->condition), 'in_transit')) bg-primary
-                                    @elseif(strtolower($parcel->latest_history->condition) == 'delivered') bg-info
+                                    @if (strtolower($parcel->latestHistory->condition) == 'cleared') bg-success
+                                    @elseif(str_contains(strtolower($parcel->latestHistory->condition), 'in_transit')) bg-primary
+                                    @elseif(strtolower($parcel->latestHistory->condition) == 'delivered') bg-info
                                     @else bg-secondary @endif">
-                                                {{ $parcel->latest_history->condition ?? 'Unknown' }}
+                                                {{ $parcel->latestHistory->condition ?? 'Unknown' }}
                                             </span>
                                         </td>
-                                        <td>{{ $parcel->latest_history->created_at->format('Y-m-d H:i:s') }}</td>
+                                        <td>{{ $parcel->latestHistory->created_at->format('Y-m-d H:i:s') }}</td>
                                         <td>Latest recorded status</td>
                                     </tr>
-                                @endif
+                                    <br/> <hr/>
+                                @endif --}}
 
                                 {{-- Full History --}}
                                 @forelse($parcel->histories->sortBy('created_at') as $history)
